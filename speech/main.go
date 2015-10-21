@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/poorny/speech"
+	"github.com/poorny/speech-to-text"
 )
 
 var (
