@@ -53,7 +53,7 @@ func makeURLCredentials(url string) string {
 }
 
 // GetSession <-
-func GetSession(sessionURL string) (SessionRsp, bool) {
+func GetSession(sessionURL string) (SessionRsp, error) {
 	log.Println("Getting session")
 	jsonStr := []byte(`{}`)
 	modelURL := fmt.Sprintf("%s?model=%s", sessionURL, "pt-BR_BroadbandModel")
@@ -61,7 +61,7 @@ func GetSession(sessionURL string) (SessionRsp, bool) {
 	req, err := http.NewRequest("POST", modelURL, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		log.Println("Creating new Request", err)
-		return SessionRsp{}, false
+		return SessionRsp{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	cookiesJar, err := cookiejar.New(nil)
@@ -75,14 +75,14 @@ func GetSession(sessionURL string) (SessionRsp, bool) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Send request", err)
-		return SessionRsp{}, false
+		return SessionRsp{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("Reading body", err)
-		return SessionRsp{}, false
+		return SessionRsp{}, err
 	}
 
 	if resp.StatusCode != 201 {
@@ -90,41 +90,41 @@ func GetSession(sessionURL string) (SessionRsp, bool) {
 		err = json.Unmarshal(body, &errorStc)
 		if err != nil {
 			log.Println("Unmarshal error body", err)
-			return SessionRsp{}, false
+			return SessionRsp{}, err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
-		return SessionRsp{}, false
+		return SessionRsp{}, err
 	}
 
 	var sessionRsp SessionRsp
 	err = json.Unmarshal(body, &sessionRsp)
 	if err != nil {
 		log.Println("Unmarshal body", err)
-		return SessionRsp{}, false
+		return SessionRsp{}, err
 	}
 	sessionRsp.CJar = cookiesJar
 	log.Println("Getting session - Done")
-	return sessionRsp, true
+	return sessionRsp, nil
 }
 
 // SendAudio blah
-func (s *SessionRsp) SendAudio(pathAudio string) (string, bool) {
+func (s *SessionRsp) SendAudio(pathAudio string) (string, error) {
 	log.Println("Seding audio")
 	path, err := ConvertToWav(pathAudio)
 	if err != nil {
 		log.Println("Error on Convert", err)
-		return "", false
+		return "", err
 	}
 
 	wav, err := os.Open(path)
 	if err != nil {
 		log.Println(err)
-		return "", false
+		return "", err
 	}
 	req, err := http.NewRequest("POST", s.Recognize, wav)
 	if err != nil {
 		log.Println(err)
-		return "", false
+		return "", err
 	}
 	req.Header.Set("Content-Type", "audio/wav")
 	//req.Header.Set("Transfer-Encoding", "Chunked")
@@ -135,14 +135,14 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, bool) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return "", false
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return "", false
+		return "", err
 	}
 
 	if resp.StatusCode != 200 {
@@ -150,17 +150,17 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, bool) {
 		err = json.Unmarshal(body, &errorStc)
 		if err != nil {
 			log.Println("Unmarshal error body", err)
-			return "", false
+			return "", err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
-		return "", false
+		return "", err
 	}
 
 	var response RecognizeResponse
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		log.Println("Unmarshall body", err)
-		return "", false
+		return "", err
 	}
 
 	for _, resp := range response.Results {
@@ -168,21 +168,21 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, bool) {
 			for _, alt := range resp.Alternatives {
 				if _, ok := alt["confidence"]; ok {
 					log.Println("Send Audio - Done")
-					return alt["transcript"].(string), true
+					return alt["transcript"].(string), nil
 				}
 			}
 		}
 	}
-	return "", false
+	return "", err
 }
 
 // GetRecognize -<
-func (s *SessionRsp) GetRecognize() bool {
+func (s *SessionRsp) GetRecognize() error {
 	log.Println("Get Recognize Status")
 	req, err := http.NewRequest("GET", s.Recognize, nil)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
 
 	client := http.Client{
@@ -191,38 +191,38 @@ func (s *SessionRsp) GetRecognize() bool {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
 	if resp.StatusCode != 200 {
 		var errorStc ErrorResponse
 		err = json.Unmarshal(body, &errorStc)
 		if err != nil {
 			log.Println("Unmarshal error body", err)
-			return false
+			return err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
-		return false
+		return err
 	}
 	log.Println("Get Recognize Status - Done")
-	return true
+	return nil
 }
 
 // ObserverResult <-
-func (s *SessionRsp) ObserverResult() bool {
+func (s *SessionRsp) ObserverResult() error {
 	log.Println("Observe Result url")
 	url := makeURLCredentials(s.ObserveResult)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
 
 	client := http.Client{
@@ -231,39 +231,39 @@ func (s *SessionRsp) ObserverResult() bool {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
 	if resp.StatusCode != 200 {
 		var errorStc ErrorResponse
 		err = json.Unmarshal(body, &errorStc)
 		if err != nil {
 			log.Println("Unmarshal error body", err)
-			return false
+			return err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
-		return false
+		return err
 	}
 
 	log.Println("Observe Result - Done")
-	return true
+	return nil
 }
 
 // DeleteSession remove session
-func (s *SessionRsp) DeleteSession() bool {
+func (s *SessionRsp) DeleteSession() error {
 	log.Println("Delete SESSION")
 	url := makeURLCredentials(s.NewSessionURI)
 
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		log.Println("Make DELETE request", err)
-		return false
+		return err
 	}
 
 	client := http.Client{
@@ -272,27 +272,27 @@ func (s *SessionRsp) DeleteSession() bool {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Send Delete request", err)
-		return false
+		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return false
+		return err
 	}
 
 	if resp.StatusCode == 204 {
 		log.Println("Session closed!")
-		return true
+		return nil
 	}
 
 	var errorStc ErrorResponse
 	err = json.Unmarshal(body, &errorStc)
 	if err != nil {
 		log.Println("Unmarshal error body", err)
-		return false
+		return err
 	}
 	log.Println(errorStc.Error, errorStc.CodeDescription)
-	return false
+	return err
 }

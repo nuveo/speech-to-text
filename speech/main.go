@@ -19,19 +19,18 @@ func main() {
 		c.Setup()
 
 		url := c.MakeSessionURL()
-		sess, f := speech.GetSession(url)
-		if f == false {
+		sess, err := speech.GetSession(url)
+		if err != nil {
 			return
 		}
 
 		sess.GetRecognize()
 
-		text, f := sess.SendAudio(*inputFile)
-		if f == false {
+		text, err := sess.SendAudio(*inputFile)
+		if err != nil {
 			return
 		}
 		fmt.Println(text)
 		sess.DeleteSession()
-
 	}
 }
