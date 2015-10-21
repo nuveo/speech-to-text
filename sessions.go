@@ -110,7 +110,13 @@ func GetSession(sessionURL string) (SessionRsp, bool) {
 // SendAudio blah
 func (s *SessionRsp) SendAudio(pathAudio string) (string, bool) {
 	log.Println("Seding audio")
-	wav, err := os.Open(pathAudio)
+	path, err := ConvertToWav(pathAudio)
+	if err != nil {
+		log.Println("Error on Convert", err)
+		return "", false
+	}
+
+	wav, err := os.Open(path)
 	if err != nil {
 		log.Println(err)
 		return "", false

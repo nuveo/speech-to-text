@@ -27,6 +27,7 @@ func newUUID() (string, error) {
 
 // ConvertToWav convert files mp3 to Wav
 func ConvertToWav(path string) (string, error) {
+	log.Println("Converting")
 	f, err := os.Open(path)
 	if err != nil {
 		return "", errors.New(err.Error())
@@ -54,5 +55,6 @@ func ConvertToWav(path string) (string, error) {
 	if err != nil {
 		log.Println(err, cmd)
 	}
+	log.Println("Done convert!")
 	return tmpDir, err
 }
