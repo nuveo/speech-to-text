@@ -25,13 +25,28 @@ func newUUID() (string, error) {
 	return fmt.Sprintf("%x-%x-%x-%x-%x", uuid[0:4], uuid[4:6], uuid[6:8], uuid[8:10], uuid[10:]), nil
 }
 
+func checkAvconv() error {
+	out, _ := exec.Command("which", "avconv").Output()
+	if string(out) == "" {
+		return errors.New("Please, install avconv with libav-tools package!")
+	}
+	return nil
+}
+
 // ConvertToWav convert files mp3 to Wav
 func ConvertToWav(path string) (string, error) {
 	log.Println("Converting")
+
+	err := checkAvconv()
+	if err != nil {
+		return "", err
+	}
+
 	f, err := os.Open(path)
 	if err != nil {
 		return "", errors.New(err.Error())
 	}
+	defer f.Close()
 
 	body, err := ioutil.ReadAll(f)
 	if err != nil {
