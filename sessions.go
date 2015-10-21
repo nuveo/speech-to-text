@@ -93,7 +93,8 @@ func GetSession(sessionURL string) (SessionRsp, error) {
 			return SessionRsp{}, err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
-		return SessionRsp{}, err
+		errF := fmt.Sprintf("%s - %s", errorStc.Error, errorStc.CodeDescription)
+		return SessionRsp{}, errors.New(errF)
 	}
 
 	var sessionRsp SessionRsp
@@ -153,7 +154,8 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, error) {
 			return "", err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
-		return "", err
+		errF := fmt.Sprintf("%s - %s", errorStc.Error, errorStc.CodeDescription)
+		return "", errors.New(errF)
 	}
 
 	var response RecognizeResponse
@@ -208,7 +210,8 @@ func (s *SessionRsp) GetRecognize() error {
 			return err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
-		return err
+		errF := fmt.Sprintf("%s - %s", errorStc.Error, errorStc.CodeDescription)
+		return errors.New(errF)
 	}
 	log.Println("Get Recognize Status - Done")
 	return nil
