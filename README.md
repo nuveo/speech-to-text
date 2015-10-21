@@ -25,7 +25,7 @@ package main
 
 import (
   "fmt"
-  "github.com/poorny/speech"
+  "github.com/poorny/speech-to-text"
 )
 func main() {
   c := speech.Credentials{}
