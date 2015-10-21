@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 
 	"github.com/poorny/speech"
 )
@@ -33,6 +32,6 @@ func main() {
 		}
 		fmt.Println(text)
 		sess.DeleteSession()
+
 	}
-	log.Println("Send a file with -input flag")
 }

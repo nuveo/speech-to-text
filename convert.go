@@ -40,6 +40,7 @@ func ConvertToWav(path string) (string, error) {
 
 	response := http.DetectContentType(body)
 	if response == "audio/wave" {
+		log.Println("file is audio/wav type")
 		return path, nil
 	}
 
