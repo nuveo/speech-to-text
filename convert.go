@@ -69,7 +69,8 @@ func ConvertToWav(path string) (string, error) {
 
 	_, err = exec.Command("bash", "-c", cmd).Output()
 	if err != nil {
-		log.Println(err, cmd)
+		log.Println("Convert has error", err, cmd)
+		return "", err
 	}
 	log.Println("Done convert!")
 	return tmpDir, err

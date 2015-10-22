@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"os"
+	"strings"
 )
 
 // Result strct
@@ -123,13 +124,14 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, error) {
 		log.Println(err)
 		return "", err
 	}
-	req, err := http.NewRequest("POST", s.Recognize, wav)
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s?continuous=true", s.Recognize), wav)
 	if err != nil {
 		log.Println(err)
 		return "", err
 	}
 	req.Header.Set("Content-Type", "audio/wav")
-	//req.Header.Set("Transfer-Encoding", "Chunked")
+	req.Header.Set("Transfer-Encoding", "Chunked")
 
 	client := http.Client{
 		Jar: s.CJar,
@@ -166,17 +168,22 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, error) {
 		return "", err
 	}
 
+	final := []string{}
+
 	for _, resp := range response.Results {
 		if resp.Final {
 			for _, alt := range resp.Alternatives {
 				if _, ok := alt["confidence"]; ok {
-					log.Println("Send Audio - Done")
-					return alt["transcript"].(string), nil
+					final = append(final, alt["transcript"].(string))
 				}
 			}
 		}
 	}
-	return "", err
+	log.Println("Send Audio - Done")
+	if len(final) == 0 {
+		return "", errors.New("nothing was recognized")
+	}
+	return strings.Join(final, " "), err
 }
 
 // GetRecognize -<
