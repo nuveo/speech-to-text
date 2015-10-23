@@ -43,6 +43,11 @@ type SessionRsp struct {
 // RecognizeStatus Get status from /recgonize api.
 // checks that Speech-to-text api is available for new recognition
 type RecognizeStatus struct {
+	Session RecognizeBody `json:"session"`
+}
+
+// RecognizeBody body response
+type RecognizeBody struct {
 	State         string `json:"state"`
 	Model         string `json:"model"`
 	Recognize     string `json:"recognize"`
@@ -285,9 +290,8 @@ func (s *SessionRsp) ObserverResult() error {
 // DeleteSession remove session
 func (s *SessionRsp) DeleteSession() error {
 	log.Println("Delete SESSION")
-	url := makeURLCredentials(s.NewSessionURI)
 
-	req, err := http.NewRequest("DELETE", url, nil)
+	req, err := http.NewRequest("DELETE", s.NewSessionURI, nil)
 	if err != nil {
 		log.Println("Make DELETE request", err)
 		return err

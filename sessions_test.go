@@ -52,15 +52,10 @@ func HsendAudio(w http.ResponseWriter, r *http.Request) {}
 
 func HgetRecognize(w http.ResponseWriter, r *http.Request) {
 	mockSession := makeMockSession(r.Host)
-	var s = struct {
-		State         string
-		Model         string
-		Recognize     string
-		ObserveResult string
-	}{
-		"initialized", "pt-BR_BroadbandModel",
-		mockSession.Recognize, mockSession.ObserveResult,
-	}
+	var s RecognizeStatus
+	b := RecognizeBody{"initialized", "pt-BR_BroadbandModel", mockSession.Recognize, mockSession.ObserveResult}
+	s.Session = b
+
 	response, err := json.Marshal(s)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -73,7 +68,11 @@ func HgetRecognize(w http.ResponseWriter, r *http.Request) {
 
 func HobserveResult(w http.ResponseWriter, r *http.Request) {}
 
-func HdeleteSession(w http.ResponseWriter, r *http.Request) {}
+func HdeleteSession(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(204)
+	w.Write([]byte(`{}`))
+}
 
 func handlers() *http.ServeMux {
 	r := http.NewServeMux()
@@ -140,8 +139,29 @@ func TestGetRecognize(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error: %s", err.Error())
 	}
-	if status.State != "initialized" {
+	if status.Session.State != "initialized" {
 		t.Error("State should be `initialized`")
 	}
+}
 
+func TestDeleteSession(t *testing.T) {
+	server := setupTestHandlers()
+
+	c := Credentials{}
+	c.Setup()
+
+	urlToSession := fmt.Sprintf("%s%s", server.URL, "/getSession/")
+	sess, err := GetSession(urlToSession)
+	if err != nil {
+		t.Errorf("Error: %s", err.Error())
+	}
+
+	// Mock URL
+	urlToTest := fmt.Sprintf("%s%s", server.URL, "/deleteSession/")
+	sess.NewSessionURI = urlToTest
+
+	err = sess.DeleteSession()
+	if err != nil {
+		t.Errorf("Error in delete session: %s", err.Error())
+	}
 }
