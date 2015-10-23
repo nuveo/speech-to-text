@@ -40,6 +40,15 @@ type SessionRsp struct {
 	CJar          *cookiejar.Jar
 }
 
+// RecognizeStatus Get status from /recgonize api.
+// checks that Speech-to-text api is available for new recognition
+type RecognizeStatus struct {
+	State         string `json:"state"`
+	Model         string `json:"model"`
+	Recognize     string `json:"recognize"`
+	ObserveResult string `json:"observe_result"`
+}
+
 // makeURLCredentials -<
 func makeURLCredentials(url string) string {
 	usr := os.Getenv("SPEECH_USERNAME")
@@ -187,12 +196,12 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, error) {
 }
 
 // GetRecognize -<
-func (s *SessionRsp) GetRecognize() error {
+func (s *SessionRsp) GetRecognize() (RecognizeStatus, error) {
 	log.Println("Get Recognize Status")
 	req, err := http.NewRequest("GET", s.Recognize, nil)
 	if err != nil {
 		log.Println(err)
-		return err
+		return RecognizeStatus{}, err
 	}
 
 	client := http.Client{
@@ -201,28 +210,35 @@ func (s *SessionRsp) GetRecognize() error {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println(err)
-		return err
+		return RecognizeStatus{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
-		return err
+		return RecognizeStatus{}, err
 	}
 	if resp.StatusCode != 200 {
 		var errorStc ErrorResponse
 		err = json.Unmarshal(body, &errorStc)
 		if err != nil {
 			log.Println("Unmarshal error body", err)
-			return err
+			return RecognizeStatus{}, err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
 		errF := fmt.Sprintf("%s - %s", errorStc.Error, errorStc.CodeDescription)
-		return errors.New(errF)
+		return RecognizeStatus{}, errors.New(errF)
+	}
+
+	var recognizeSts RecognizeStatus
+	err = json.Unmarshal(body, &recognizeSts)
+	if err != nil {
+		log.Println("Unmarshal body", err)
+		return RecognizeStatus{}, err
 	}
 	log.Println("Get Recognize Status - Done")
-	return nil
+	return recognizeSts, nil
 }
 
 // ObserverResult <-
