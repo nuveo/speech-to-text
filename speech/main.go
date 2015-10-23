@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 
 	"github.com/poorny/speech-to-text"
 )
@@ -24,7 +25,15 @@ func main() {
 			return
 		}
 
-		sess.GetRecognize()
+		status, err := sess.GetRecognize()
+		if err != nil {
+			return
+		}
+
+		if status.State != "initialized" {
+			log.Println("Not ready yet!")
+			return
+		}
 
 		text, err := sess.SendAudio(*inputFile)
 		if err != nil {

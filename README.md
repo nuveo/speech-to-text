@@ -32,17 +32,26 @@ func main() {
   c.Setup()
 
   url := c.MakeSessionURL()
-  sess, f := speech.GetSession(url)
-  if f == false {
+  sess, err := speech.GetSession(url)
+  if err != nil {
     return
   }
 
-  sess.GetRecognize()
-
-  text, f := sess.SendAudio(*inputFile)
-  if f == false {
+  status, err := sess.GetRecognize()
+  if err != nil {
     return
   }
+
+  if status.State != "initialized" {
+    log.Println("Not ready yet!")
+    return
+  }
+
+  text, err := sess.SendAudio(*inputFile)
+  if err != nil {
+    return
+  }
+
   fmt.Println(text)
   sess.DeleteSession()
 }
