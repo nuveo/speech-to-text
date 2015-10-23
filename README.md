@@ -42,8 +42,8 @@ func main() {
     return
   }
 
-  if status.State != "initialized" {
-    log.Println("Not ready yet!")
+  if status.Session.State != "initialized" {
+    log.Println("Not ready yet, got:", status.Session.State)
     return
   }
 
