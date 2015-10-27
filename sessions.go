@@ -280,7 +280,8 @@ func (s *SessionRsp) ObserverResult() error {
 			return err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
-		return err
+		errF := fmt.Sprintf("%s - %s", errorStc.Error, errorStc.CodeDescription)
+		return errors.New(errF)
 	}
 
 	log.Println("Observe Result - Done")
@@ -325,5 +326,6 @@ func (s *SessionRsp) DeleteSession() error {
 		return err
 	}
 	log.Println(errorStc.Error, errorStc.CodeDescription)
-	return err
+	errF := fmt.Sprintf("%s - %s", errorStc.Error, errorStc.CodeDescription)
+	return errors.New(errF)
 }
