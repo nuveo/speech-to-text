@@ -16,6 +16,7 @@ import (
 // GetRecognize test
 // ObserverResult test
 // DeleteSession test
+var mockResponseRecognize = `{"result_index":0,"results":[{"final":true,"alternatives":[{"transcript":"hello world","confidence":0.9,"timestamps":[["hello",0.0,1.2],["world",1.2,2.5]],"word_confidence":[["hello",0.95],["world",0.866]]}]}]}`
 
 func GetMD5Hash(text string) string {
 	hasher := md5.New()
@@ -48,7 +49,11 @@ func HgetSession(w http.ResponseWriter, r *http.Request) {
 	w.Write(response)
 }
 
-func HsendAudio(w http.ResponseWriter, r *http.Request) {}
+func HsendAudio(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	w.Write([]byte(mockResponseRecognize))
+}
 
 func HgetRecognize(w http.ResponseWriter, r *http.Request) {
 	mockSession := makeMockSession(r.Host)
@@ -163,5 +168,30 @@ func TestDeleteSession(t *testing.T) {
 	err = sess.DeleteSession()
 	if err != nil {
 		t.Errorf("Error in delete session: %s", err.Error())
+	}
+}
+
+func TestSendAudio(t *testing.T) {
+	server := setupTestHandlers()
+
+	c := Credentials{}
+	c.Setup()
+
+	urlToSession := fmt.Sprintf("%s%s", server.URL, "/getSession/")
+	sess, err := GetSession(urlToSession)
+	if err != nil {
+		t.Errorf("Error: %s", err.Error())
+	}
+
+	urlToSend := fmt.Sprintf("%s%s", server.URL, "/sendAudio/")
+	sess.Recognize = urlToSend
+
+	result, err := sess.SendAudio("./testdata/toTest.wav")
+	if err != nil {
+		t.Errorf("Error: %s", err.Error())
+	}
+
+	if result != "hello world" {
+		t.Errorf("Error: %s", err.Error())
 	}
 }
