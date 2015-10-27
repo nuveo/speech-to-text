@@ -37,11 +37,6 @@ func checkAvconv() error {
 func ConvertToWav(path string) (string, error) {
 	log.Println("Converting")
 
-	err := checkAvconv()
-	if err != nil {
-		return "", err
-	}
-
 	f, err := os.Open(path)
 	if err != nil {
 		return "", errors.New(err.Error())
@@ -57,6 +52,11 @@ func ConvertToWav(path string) (string, error) {
 	if response == "audio/wave" {
 		log.Println("file is audio/wav type")
 		return path, nil
+	}
+
+	err = checkAvconv()
+	if err != nil {
+		return "", err
 	}
 
 	nameFile, err := newUUID()
