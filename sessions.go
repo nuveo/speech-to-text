@@ -69,10 +69,15 @@ func makeURLCredentials(url string) string {
 }
 
 // GetSession <-
-func GetSession(sessionURL string) (SessionRsp, error) {
+func GetSession(sessionURL, model string) (SessionRsp, error) {
 	log.Println("Getting session")
 	jsonStr := []byte(`{}`)
-	modelURL := fmt.Sprintf("%s?model=%s", sessionURL, "pt-BR_BroadbandModel")
+
+	if model == "" {
+		model = "pt-BR_BroadbandModel"
+	}
+
+	modelURL := fmt.Sprintf("%s?model=%s", sessionURL, model)
 
 	req, err := http.NewRequest("POST", modelURL, bytes.NewBuffer(jsonStr))
 	if err != nil {
@@ -171,6 +176,7 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, error) {
 			return "", err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
+
 		errF := fmt.Sprintf("%s - %s", errorStc.Error, errorStc.CodeDescription)
 		return "", errors.New(errF)
 	}
