@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+var model = "pt-BR_BroadbandModel"
+
 // Result strct
 type Result struct {
 	Final        bool                     `json:"final"`
@@ -68,14 +70,14 @@ func makeURLCredentials(url string) string {
 	return ""
 }
 
+func SetSessionModel(m string) {
+	model = m
+}
+
 // GetSession <-
-func GetSession(sessionURL, model string) (SessionRsp, error) {
+func GetSession(sessionURL string) (SessionRsp, error) {
 	log.Println("Getting session")
 	jsonStr := []byte(`{}`)
-
-	if model == "" {
-		model = "pt-BR_BroadbandModel"
-	}
 
 	modelURL := fmt.Sprintf("%s?model=%s", sessionURL, model)
 
