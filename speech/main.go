@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/poorny/speech-to-text"
+	"github.com/nuveo/speech-to-text"
 )
 
 var (

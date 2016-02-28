@@ -112,7 +112,7 @@ func GetSession(sessionURL string) (SessionRsp, error) {
 		var errorStc ErrorResponse
 		err = json.Unmarshal(body, &errorStc)
 		if err != nil {
-			log.Println("Unmarshal error body", err)
+			log.Println("Unmarshal error body: ", err)
 			return SessionRsp{}, err
 		}
 		log.Println(errorStc.Error, errorStc.CodeDescription)
@@ -142,13 +142,11 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, error) {
 
 	wav, err := os.Open(path)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s?continuous=true", s.Recognize), wav)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	req.Header.Set("Content-Type", "audio/wav")
@@ -159,14 +157,12 @@ func (s *SessionRsp) SendAudio(pathAudio string) (string, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err)
 		return "", err
 	}
 
@@ -213,7 +209,6 @@ func (s *SessionRsp) GetRecognize() (RecognizeStatus, error) {
 	log.Println("Get Recognize Status")
 	req, err := http.NewRequest("GET", s.Recognize, nil)
 	if err != nil {
-		log.Println(err)
 		return RecognizeStatus{}, err
 	}
 
@@ -222,14 +217,12 @@ func (s *SessionRsp) GetRecognize() (RecognizeStatus, error) {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
 		return RecognizeStatus{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err)
 		return RecognizeStatus{}, err
 	}
 	if resp.StatusCode != 200 {
@@ -261,7 +254,6 @@ func (s *SessionRsp) ObserverResult() error {
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
@@ -270,14 +262,12 @@ func (s *SessionRsp) ObserverResult() error {
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	if resp.StatusCode != 200 {
@@ -318,7 +308,6 @@ func (s *SessionRsp) DeleteSession() error {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
